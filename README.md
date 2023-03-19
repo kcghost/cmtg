@@ -2,7 +2,7 @@
 
 ## Install
 ```
-pip install cmtg
+pip3 install cmtg
 ```
 
 ## Development
@@ -15,6 +15,29 @@ python3 -m pip install --upgrade build
 python3 -m pip install --upgrade twine
 ```
 
-### Build
-`make`
+### Instant CLI testing
+Source `dev.env` to get a `cmtg` function that executes `src/cmtg/cmtg.py`.
+It also loads `.env` if existing.
+```
+. dev.env
+cmtg
+```
 
+### Build
+Build wheel and source distributions.
+```
+make
+```
+
+### Install
+Installs the wheel distribution.
+A `cmtg` CLI script is made available in `PATH`.
+```
+make install
+```
+
+### Upload to PyPi
+Populate `.env` with credentials:
+```
+make upload
+```

@@ -22,4 +22,4 @@ classifiers = [
 "Bug Tracker" = "https://github.com/kcghost/cmtg/issues"
 
 [project.scripts]
-cmtg = "cmtg:hello_world"
+cmtg = "cmtg:main"
