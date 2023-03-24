@@ -21,3 +21,5 @@ upload:
 	python3 -m twine upload --repository testpypi dist/*
 
 clean:
+	$(RM) $(WHEEL)
+	$(RM) $(SDIST)
