@@ -1,0 +1,90 @@
+{
+	"name":  "Simple",
+	"author":  "Casey Fitzpatrick",
+	// Loosely based on the `micro` editor's `simple` colorscheme which just inherits terminal colors
+	"variables": {
+		"black":         "#000000",
+		"red":           "#cd0000",
+		"green":         "#00cd00",
+		"yellow":        "#cdcd00",
+		"blue":          "#0000ee",
+		"magenta":       "#cd00cd",
+		"cyan":          "#00cdcd",
+		"white":         "#e5e5e5",
+		"brightblack":   "#7f7f7f",
+		"brightred":     "#ff0000",
+		"brightgreen":   "#00ff00",
+		"brightyellow":  "#ffff00",
+		"brightblue":    "#5c5cff",
+		"brightmagenta": "#ff00ff",
+		"brightcyan":    "#00ffff",
+		"brightwhite":   "#ffffff",
+		"background":    "var(black)",
+		"foreground":    "var(white)",
+	},
+	"globals": {
+		"background":                  "var(background)",
+		"foreground":                  "var(foreground)",
+		"caret":                       "var(white)",
+		"gutter":                      "var(black)",
+		"line_highlight":              "var(black)",
+		"gutter_foreground":           "var(yellow)",
+		"gutter_foreground_highlight": "var(red)",
+		"selection":                   "var(foreground)",
+		"selection_foreground":        "var(background)",
+	},
+	"rules": [
+
+{ "scope": "entity.name",                      "foreground": "var(cyan)"},
+{ "scope": "entity.name.function",             "foreground": "var(foreground)"},
+{ "scope": "entity.other.inherited-class",     "foreground": "var(foreground)"},
+{ "scope": "entity.name.section",              "foreground": "var(magenta)"},
+{ "scope": "entity.name.tag",                  "foreground": "var(yellow)"},
+{ "scope": "entity.other.attribute-name",      "foreground": "var(cyan)"},
+
+{ "scope": "variable",                         "foreground": "var(cyan)"},
+{ "scope": "variable.language",                "foreground": "var(green)"},
+{ "scope": "variable.parameter",               "foreground": "var(foreground)"},
+{ "scope": "variable.parameter.option",        "foreground": "var(yellow)"},
+{ "scope": "variable.function",                "foreground": "var(foreground)"},
+
+{ "scope": "constant",                         "foreground": "var(red)"},
+{ "scope": "constant.other",                   "foreground": "var(foreground)"},
+{ "scope": "constant.language",                "foreground": "var(red)"},
+{ "scope": "constant.language.shebang",        "foreground": "var(blue)"},
+
+{ "scope": "storage.type",                     "foreground": "var(green)"},
+{ "scope": "storage.modifier",                 "foreground": "var(green)"},
+
+{ "scope": "support",                          "foreground": "var(green)"},
+{ "scope": "support.type",                     "foreground": "var(green)"},
+
+{ "scope": "keyword",                          "foreground": "var(foreground)"},
+{ "scope": "keyword.control",                  "foreground": "var(yellow)"},
+{ "scope": "keyword.control.import",           "foreground": "var(magenta)"},
+{ "scope": "keyword.operator",                 "foreground": "var(yellow)"},
+{ "scope": "keyword.operator.word",            "foreground": "var(green)"},
+{ "scope": "keyword.declaration",              "foreground": "var(magenta)"},
+
+{ "scope": "string",                           "foreground": "var(red)"},
+{ "scope": "string.quoted.other",              "foreground": "var(foreground)"},
+
+{ "scope": "comment",                          "foreground": "var(blue)"},
+
+{ "scope": "invalid",                          "foreground": "var(brightred)"},
+{ "scope": "invalid.deprecated",               "foreground": "var(foreground)"},
+
+{ "scope": "punctuation.definition.string",    "foreground": "var(yellow)"},
+{ "scope": "punctuation.definition.list_item", "foreground": "var(cyan)"},
+
+{ "scope": "meta.link",                        "foreground": "var(blue)"},
+
+{ "scope": "markup.heading",                   "foreground": "var(magenta)"},
+{ "scope": "markup.bold",                      "font_style": "bold"},
+{ "scope": "markup.italic",                    "font_style": "italic"},
+{ "scope": "markup.underline",                 "font_style": "underline"},
+{ "scope": "markup.raw",                       "background": "color(var(background) l(+ 05%))"},
+{ "scope": "markup.quote",                     "background": "color(var(background) l(+ 10%))"},
+
+	]
+}

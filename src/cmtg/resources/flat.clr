@@ -1,0 +1,17 @@
+! Personal colortable
+*.color0:  #202020
+*.color1:  #9f6060
+*.color2:  #609f60
+*.color3:  #9f9f60
+*.color4:  #60609f
+*.color5:  #9f609f
+*.color6:  #609f9f
+*.color7:  #bfbfbf
+*.color8:  #808080
+*.color9:  #bf4040
+*.color10: #40bf40
+*.color11: #bfbf40
+*.color12: #4040bf
+*.color13: #bf40bf
+*.color14: #40bfbf
+*.color15: #dfdfdf
