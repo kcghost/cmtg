@@ -28,6 +28,10 @@ def input_arg(arg):
 	if path.exists():
 		return path.read_text(encoding='utf-8')
 
+	# TODO: CPP or appres?
+	if arg == 'xres' and xres_path.exists():
+		return xres_path.read_text(encoding='utf-8')
+
 	return read_text(resources, arg)
 
 # Write text to output argument
@@ -38,10 +42,6 @@ def output_arg(arg, text):
 		path = Path(arg)
 		path.write_text(text, encoding='utf-8')
 
-# Cause xres is special
-def parse_xres():
-	pass
-
 def parse_colors(t):
 	colors = set()
 	for line in t.splitlines():
@@ -50,8 +50,13 @@ def parse_colors(t):
 			colors.add((int(c[1:3],16),int(c[3:5],16),int(c[5:],16)))
 	return colors
 
-def print_color(color):
-	pass
+def bg_color(c, t):
+	r,g,b = c
+	return f'\x1b[48;2;{r};{g};{b}m{t}\x1b[0m'
+
+def c_hex(c):
+	r,g,b = c
+	return f'#{r:02x}{g:02x}{b:02x}'
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -66,8 +71,12 @@ def main():
 	src_colors = parse_colors(src)
 	tpl_colors = parse_colors(tpl)
 
-	pprint(src_colors)
-	pprint(tpl_colors)
+	print(f'{args.source}:')
+	for c in src_colors:
+		print(bg_color(c,'        '), c_hex(c))
+	print(f'{args.template}:')
+	for c in tpl_colors:
+		print(bg_color(c,'        '), c_hex(c))
 
 if __name__ == "__main__":
 	main()

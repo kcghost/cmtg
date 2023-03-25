@@ -5,6 +5,11 @@
 pip3 install cmtg
 ```
 
+## Usage
+```
+appres cmtg | cmtg - flat.clr -
+```
+
 ## Development
 
 ### Host Requirements
