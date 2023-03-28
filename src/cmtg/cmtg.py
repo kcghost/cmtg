@@ -8,6 +8,8 @@ from pathlib import Path
 from pprint import pprint
 import networkx as nx
 from importlib.resources import read_text
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 if __package__:
 	from . import resources
