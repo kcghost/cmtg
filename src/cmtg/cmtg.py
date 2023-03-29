@@ -35,6 +35,8 @@ def euclid_dist(c1,c2):
 	r2,g2,b2 = c2
 	return sqrt((r2-r1)**2+(g2-g1)**2+(b2-b1)**2)
 
+# Experimentally redmean is actually worse
+# at least in vga color testing against its awkward yellow
 def redmean_dist(c1,c2):
 	r1,g1,b1 = c1
 	r2,g2,b2 = c2
@@ -95,7 +97,7 @@ def p_color(s):
 
 def p_diff(r):
 	for a, b, w in r:
-		print(bg_color(a,'        '),bg_color(b,'        '),c_hex(a),c_hex(b))
+		print(bg_color(a,'        '),bg_color(b,'        '),c_hex(a),c_hex(b), f'{w:06.2f}')
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -113,7 +115,7 @@ def main():
 	print(f'template: {args.template}:')
 	p_color(tpl)
 	
-	print(f'source: {args.source}:')
+	print(f'source palette: {args.source}:')
 	p_color(src)
 	
 	r,s = solve_assignment(tpl, src, redmean_dist)
