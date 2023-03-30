@@ -1,8 +1,9 @@
 {
 	"name":  "Simple",
 	"author":  "Casey Fitzpatrick",
-	// Loosely based on the `micro` editor's `simple` colorscheme which just inherits terminal colors
+	// Loosely based on the `micro` editors `simple` colorscheme which just inherits terminal colors
 	"variables": {
+// xterm colors
 		"black":         "#000000",
 		"red":           "#cd0000",
 		"green":         "#00cd00",
