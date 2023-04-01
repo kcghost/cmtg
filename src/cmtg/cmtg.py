@@ -141,7 +141,7 @@ def p_diff(r,src):
 def main():
 	parser = argparse.ArgumentParser(
 		prog='cmtg',
-		description='Generate matching color themes'
+		description='Generate matching color theme given a template and palette'
 	)
 	parser.add_argument('--dist', nargs='?',
 		const='cie2000', default='cie2000',
@@ -150,31 +150,28 @@ def main():
 	)
 	ex_sources = [x for x in contents(resources) if ".clr" in x]
 	ex_templates = [x for x in contents(resources) if x not in ex_sources and "__" not in x]
-	parser.add_argument("template", help=f'any file or  builtins: {ex_templates}')
-	parser.add_argument("palette", help=f'any file or "xres" or "appres" or builtins: {ex_sources}')
-	parser.add_argument("out")
+	parser.add_argument("template", help=f'stdin, file, or builtins: {ex_templates}')
+	parser.add_argument("palettes", nargs='+', help=f'stdin, file, xres, appres, or builtins: {ex_sources}')
+	parser.add_argument("out", help='stdout or file')
 	args = parser.parse_args()
 
 	tpl_t = input_arg(args.template)
-	src_t = input_arg(args.palette)
 	tpl = parse_colors(tpl_t)
-	src = parse_colors(src_t)
 	dist = dist_functions[args.dist]
 
-	eprint(f'template: {args.template}:')
-	p_color(tpl)
+	for pal in args.palettes:
+		src_t = input_arg(pal)
+		src = parse_colors(src_t)
+		if len(tpl) > len(src):
+			eprint('Not enough colors in palette!')
+			exit(1)
+		r,s = solve_assignment(tpl, src, dist)
+		p_diff(r,src)
 
-	eprint(f'source palette: {args.palette}:')
-	p_color(src)
-
-	if len(tpl) > len(src):
-		eprint('Not enough colors in palette!')
-		exit(1)
-	r,s = solve_assignment(tpl, src, dist)
-	p_diff(r,src)
-
-	for tc,sc,w in r:
-		tpl_t = re.sub(c_hex(tc),c_hex(sc),tpl_t,flags=re.IGNORECASE)
+		for tc,sc,w in r:
+			tpl_t = re.sub(c_hex(tc),c_hex(sc),tpl_t,flags=re.IGNORECASE)
+		tpl = src
+	
 	output_arg(args.out, tpl_t)
 
 if __name__ == "__main__":
