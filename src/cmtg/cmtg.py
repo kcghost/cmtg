@@ -3,13 +3,21 @@ import sys
 import re
 import argparse
 import subprocess
-from math import sqrt
 from pathlib import Path
-from pprint import pprint
-import networkx as nx
-from importlib.resources import read_text
+from importlib.resources import read_text, contents
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
+from math import sqrt
+import networkx as nx
+# monkeypatch to fix colormath use of a deprecated function in numpy
+import numpy
+def asscalar(a):
+	return a.item()
+numpy.asscalar = asscalar
+from colormath.color_objects import sRGBColor, LabColor
+from colormath.color_conversions import convert_color
+from colormath.color_diff import *
 
 if __package__:
 	from . import resources
@@ -55,11 +63,12 @@ def solve_assignment(targets, sources, wf):
 	all_targets = targets
 	targets = [x for x in targets if x not in sources]
 	sources = [x for x in sources if x not in all_targets]
-	
-	graph = nx.complete_bipartite_graph(targets, sources)
-	for a, b in graph.edges():
-		graph.edges[a, b]['weight'] = wf(a, b)
-	matching = nx.bipartite.minimum_weight_full_matching(graph)
+	matching = {}
+	if targets:
+		graph = nx.complete_bipartite_graph(targets, sources)
+		for a, b in graph.edges():
+			graph.edges[a, b]['weight'] = wf(a, b)
+		matching = nx.bipartite.minimum_weight_full_matching(graph)
 	result = [(t, matching[t], graph.edges[t, matching[t]]['weight']) if t in matching else (t, t, 0.00) for t in all_targets]
 	s = sum(w for _,_,w in result)
 	return (result, s)
@@ -80,6 +89,26 @@ def redmean_dist(c1,c2):
 	cb2 = (b2-b1)**2
 	rm = (r1+r2)/2
 	return sqrt((2+(rm/256))*cr2+4*cg2+(2+((255-rm)/256))*cb2)
+
+def to_LabColor(c):
+	r,g,b = c
+	s = sRGBColor(r,g,b, is_upscaled=True)
+	l = convert_color(s, LabColor)
+	return l
+
+def fromCM_dist(cm_eq):
+	def cm_func(c1,c2):
+		return cm_eq(to_LabColor(c1), to_LabColor(c2))
+	return cm_func
+
+dist_functions = {
+	"euclidean": euclid_dist,
+	"redmean": redmean_dist,
+	"cie1976": fromCM_dist(delta_e_cie1976),
+	"cie1994": fromCM_dist(delta_e_cie1994),
+	"cie2000": fromCM_dist(delta_e_cie2000),
+	"cmc":     fromCM_dist(delta_e_cmc)
+}
 
 def parse_colors(t):
 	colors = []
@@ -106,36 +135,42 @@ def p_color(s):
 def p_diff(r,src):
 	for ti,(tc,sc,w) in enumerate(r):
 		si = src.index(sc)
-		eprint(bg_color(tc,'        '),bg_color(sc,'        '),c_hex(tc),c_hex(sc),f'{ti:02}',f'{si:02}',f'{w:06.2f}')
+		eprint(bg_color(tc,'        '),bg_color(sc,'        '),
+			c_hex(tc),c_hex(sc),f'{ti:02}',f'{si:02}',f'{w:06.2f}')
 
-# todo: intermediary with pure winxp to recognize ANSI colors?
-# -ansi, src should be ansi indexed, tpl relationship to pure colors? or both?
-# https://docs.python.org/3/library/colorsys.html, HSV recognition?
-# Add HSV and other color space dist, then just pipe from instance to instace for intermediary
-# Need to establish the best distance algo for standardizing ANSI colors
-# The same for base16?
 def main():
-	parser = argparse.ArgumentParser()
-	parser.add_argument("template")
-	parser.add_argument("source")
+	parser = argparse.ArgumentParser(
+		prog='cmtg',
+		description='Generate matching color themes'
+	)
+	parser.add_argument('--dist', nargs='?',
+		const='cie2000', default='cie2000',
+		choices=dist_functions.keys(),
+		help='the color distance method (default: %(default)s)'
+	)
+	ex_sources = [x for x in contents(resources) if ".clr" in x]
+	ex_templates = [x for x in contents(resources) if x not in ex_sources and "__" not in x]
+	parser.add_argument("template", help=f'any file or  builtins: {ex_templates}')
+	parser.add_argument("palette", help=f'any file or "xres" or "appres" or builtins: {ex_sources}')
 	parser.add_argument("out")
 	args = parser.parse_args()
 
 	tpl_t = input_arg(args.template)
-	src_t = input_arg(args.source)
+	src_t = input_arg(args.palette)
 	tpl = parse_colors(tpl_t)
 	src = parse_colors(src_t)
+	dist = dist_functions[args.dist]
 
 	eprint(f'template: {args.template}:')
 	p_color(tpl)
 
-	eprint(f'source palette: {args.source}:')
+	eprint(f'source palette: {args.palette}:')
 	p_color(src)
 
 	if len(tpl) > len(src):
 		eprint('Not enough colors in palette!')
 		exit(1)
-	r,s = solve_assignment(tpl, src, euclid_dist)
+	r,s = solve_assignment(tpl, src, dist)
 	p_diff(r,src)
 
 	for tc,sc,w in r:
