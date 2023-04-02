@@ -57,21 +57,45 @@ def output_arg(arg, text):
 		path = Path(arg)
 		path.write_text(text, encoding='utf-8')
 
+def closest(t, pal, wf):
+	w = wf(t, pal[0])
+	r = pal[0]
+	for c in pal[1:]:
+		wc = wf(t, c)
+		if wc < w:
+			w = wc
+			r = c
+	return r
+
 # https://stackoverflow.com/a/75845412/2916285
 def solve_assignment(targets, sources, wf):
 	# Remove entries that are in both lists
-	all_targets = targets
-	targets = [x for x in targets if x not in sources]
-	sources = [x for x in sources if x not in all_targets]
+	la = [x for x in targets if x not in sources]
+	lb = [x for x in sources if x not in targets]
+
 	matching = {}
-	if targets:
-		graph = nx.complete_bipartite_graph(targets, sources)
+	if la:
+		graph = nx.complete_bipartite_graph(la, lb)
 		for a, b in graph.edges():
 			graph.edges[a, b]['weight'] = wf(a, b)
 		matching = nx.bipartite.minimum_weight_full_matching(graph)
-	result = [(t, matching[t], graph.edges[t, matching[t]]['weight']) if t in matching else (t, t, 0.00) for t in all_targets]
-	s = sum(w for _,_,w in result)
-	return (result, s)
+
+	r = []
+	for t in targets:
+		if t in matching:
+			r.append((t, matching[t], graph.edges[t, matching[t]]['weight']))
+		else:
+			if t in sources:
+				r.append((t, t, 0.00))
+			else:
+				# Find closest target with a matching value, duplicate val
+				ct = t
+				ctl = targets
+				while ct not in matching:
+					ctl = [x for x in ctl if x != ct]
+					ct = closest(ct, ctl, wf)
+				r.append((t, matching[ct], graph.edges[ct, matching[ct]]['weight']))
+	return r
 
 # https://en.wikipedia.org/wiki/Color_difference
 def euclid_dist(c1,c2):
@@ -163,9 +187,8 @@ def main():
 		src_t = input_arg(pal)
 		src = parse_colors(src_t)
 		if len(tpl) > len(src):
-			eprint('Not enough colors in palette!')
-			exit(1)
-		r,s = solve_assignment(tpl, src, dist)
+			eprint('Not enough colors in palette, some colors will be duplicated!')
+		r = solve_assignment(tpl, src, dist)
 		p_diff(r,src)
 
 		for tc,sc,w in r:
