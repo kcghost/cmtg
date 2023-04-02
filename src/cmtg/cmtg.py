@@ -97,6 +97,13 @@ def solve_assignment(targets, sources, wf):
 				r.append((t, matching[ct], graph.edges[ct, matching[ct]]['weight']))
 	return r
 
+src = []
+tpl = []
+def index_dist(c1, c2):
+	i1 = tpl.index(c1) if c1 in tpl else src.index(c1)
+	i2 = tpl.index(c2) if c2 in tpl else src.index(c2)
+	return abs(i1 - i2)
+
 # https://en.wikipedia.org/wiki/Color_difference
 def euclid_dist(c1,c2):
 	r1,g1,b1 = c1
@@ -126,12 +133,13 @@ def fromCM_dist(cm_eq):
 	return cm_func
 
 dist_functions = {
+	"index":     index_dist,
 	"euclidean": euclid_dist,
-	"redmean": redmean_dist,
-	"cie1976": fromCM_dist(delta_e_cie1976),
-	"cie1994": fromCM_dist(delta_e_cie1994),
-	"cie2000": fromCM_dist(delta_e_cie2000),
-	"cmc":     fromCM_dist(delta_e_cmc)
+	"redmean":   redmean_dist,
+	"cie1976":   fromCM_dist(delta_e_cie1976),
+	"cie1994":   fromCM_dist(delta_e_cie1994),
+	"cie2000":   fromCM_dist(delta_e_cie2000),
+	"cmc":       fromCM_dist(delta_e_cmc)
 }
 
 def parse_colors(t):
@@ -163,6 +171,8 @@ def p_diff(r,src):
 			c_hex(tc),c_hex(sc),f'{ti:02}',f'{si:02}',f'{w:06.2f}')
 
 def main():
+	global tpl
+	global src
 	parser = argparse.ArgumentParser(
 		prog='cmtg',
 		description='Generate matching color theme given a template and palette'
