@@ -1,4 +1,4 @@
-.PHONY: all install test-install upload clean
+.PHONY: all install test-install-wheel test-install-sdist upload clean
 
 NAME    := $(shell awk -F "=" '/^name/ {gsub(/[ "]/,""); print $$2}' pyproject.toml)
 VERSION := $(shell awk -F "=" '/^version/ {gsub(/[ "]/,""); print $$2}' pyproject.toml)
@@ -19,24 +19,28 @@ $(SDIST): $(SRC)
 	python3 -m build -s
 
 install: $(WHEEL)
-	pip3 install --force-reinstall $(WHEEL)
+	python3 -m pip install --force-reinstall $(WHEEL)
 
-test-install: $(WHEEL)
+test-install-wheel: $(WHEEL)
+test-install-sdist: $(SDIST)
+test-install-sdist test-install-wheel:
 	$(RM) -r venv
 	python3 -m venv venv
 	source venv/bin/activate
-	python3 -m pip install $(WHEEL)
+	python3 -m pip install $^
 	python3 -m cmtg pal.bash flat.clr -
-	pip3 freeze
+	python3 -m pip freeze
 	deactivate
 
 test:
 	python3 -m cmtg -h
 
-upload:
-	python3 -m twine upload --repository testpypi dist/*
+# Requires TWINE_USERNAME/TWINE_PASSWORD in environment
+upload: $(WHEEL) $(SDIST)
+	python3 -m twine check $(WHEEL) $(SDIST)
+	#python3 -m twine upload --non-interactive --repository testpypi $(WHEEL) $(SDIST)
+	python3 -m twine upload --non-interactive $(WHEEL) $(SDIST)
 
 clean:
 	$(RM) -r venv
-	$(RM) $(WHEEL)
-	$(RM) $(SDIST)
+	$(RM) -r dist/*

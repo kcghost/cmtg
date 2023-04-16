@@ -30,10 +30,11 @@ make install
 ```
 
 ## Upload to PyPi
-Populate `.env` with credentials:
-```
-make upload
-```
+* Populate `.env` with credentials
+	* `TWINE_USERNAME=__token__`
+	* `TWINE_PASSWORD=`, use token generated on PyPI or TestPyPI
+* `. .env`
+* `make upload`
 
 # todo
 * pull from base16
