@@ -1,4 +1,4 @@
-.PHONY: all install test-install-wheel test-install-sdist upload clean
+.PHONY: all install test-install-wheel test-install-sdist test-install-pypi cmtg upload clean
 
 NAME    := $(shell awk -F "=" '/^name/ {gsub(/[ "]/,""); print $$2}' pyproject.toml)
 VERSION := $(shell awk -F "=" '/^version/ {gsub(/[ "]/,""); print $$2}' pyproject.toml)
@@ -23,7 +23,8 @@ install: $(WHEEL)
 
 test-install-wheel: $(WHEEL)
 test-install-sdist: $(SDIST)
-test-install-sdist test-install-wheel:
+test-install-pypi: cmtg
+test-install-sdist test-install-wheel test-install-pypi:
 	$(RM) -r venv
 	python3 -m venv venv
 	source venv/bin/activate
