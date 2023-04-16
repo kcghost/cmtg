@@ -164,7 +164,8 @@ def p_color(s):
 
 def p_diff(r,src):
 	for ti,(tc,sc,w) in enumerate(r):
-		si = src.index(sc)
+		# For all indices in src, find the closest to ti
+		si = min([si for si,ic in enumerate(src) if ic == sc], key=lambda x:abs(x-ti))
 		eprint(bg_color(tc,'        '),bg_color(sc,'        '),
 			c_hex(tc),c_hex(sc),f'{ti:02}',f'{si:02}',f'{w:06.2f}')
 
