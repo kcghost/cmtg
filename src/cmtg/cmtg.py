@@ -67,11 +67,16 @@ def closest(t, pal, wf):
 			r = c
 	return r
 
+def dedup(l):
+	return list(dict.fromkeys(l))
+
 # https://stackoverflow.com/a/75845412/2916285
 def solve_assignment(targets, sources, wf):
-	# Remove entries that are in both lists
+	# Remove entries that are in both lists, and self duplicates
 	la = [x for x in targets if x not in sources]
 	lb = [x for x in sources if x not in targets]
+	la = dedup(la)
+	lb = dedup(lb)
 
 	matching = {}
 	if la:
@@ -94,15 +99,8 @@ def solve_assignment(targets, sources, wf):
 				while ct not in matching:
 					ctl = [x for x in ctl if x != ct]
 					ct = closest(ct, ctl, wf)
-				r.append((t, matching[ct], graph.edges[ct, matching[ct]]['weight']))
+				r.append((t, matching[ct], wf(t, matching[ct])))
 	return r
-
-src = []
-tpl = []
-def index_dist(c1, c2):
-	i1 = tpl.index(c1) if c1 in tpl else src.index(c1)
-	i2 = tpl.index(c2) if c2 in tpl else src.index(c2)
-	return abs(i1 - i2)
 
 # https://en.wikipedia.org/wiki/Color_difference
 def euclid_dist(c1,c2):
@@ -133,7 +131,7 @@ def fromCM_dist(cm_eq):
 	return cm_func
 
 dist_functions = {
-	"index":     index_dist,
+	"index":     "index",
 	"euclidean": euclid_dist,
 	"redmean":   redmean_dist,
 	"cie1976":   fromCM_dist(delta_e_cie1976),
@@ -149,7 +147,7 @@ def parse_colors(t):
 			c = m.group(0)
 			colors.append((int(c[1:3],16),int(c[3:5],16),int(c[5:],16)))
 	# remove duplicates while preserving order
-	colors = list(dict.fromkeys(colors))
+	#colors = list(dict.fromkeys(colors))
 	return colors
 
 def bg_color(c, t):
@@ -170,9 +168,33 @@ def p_diff(r,src):
 		eprint(bg_color(tc,'        '),bg_color(sc,'        '),
 			c_hex(tc),c_hex(sc),f'{ti:02}',f'{si:02}',f'{w:06.2f}')
 
+def solve_index(tpl, src):
+	r = []
+	tcm = {}
+	for ti,tc in enumerate(tpl):
+		if ti < len(src):
+			r.append((tc, src[ti], 0))
+			tcm[tc] = src[ti]
+		else:
+			r.append((tc, tcm[tc], 0))
+	return r
+
+def match_template(tpl_t, dist, tpl, src):
+	if len(dedup(tpl)) > len(dedup(src)):
+		eprint('Not enough colors in palette, some colors will be duplicated!')
+
+	if dist == "index":
+		r = solve_index(tpl, src)
+	else:
+		r = solve_assignment(tpl, src, dist)
+	p_diff(r,src)
+
+	for tc,sc,_ in r:
+		tpl_t = re.sub(c_hex(tc),c_hex(sc),tpl_t,flags=re.IGNORECASE)
+	tpl = src
+	return tpl_t
+
 def main():
-	global tpl
-	global src
 	parser = argparse.ArgumentParser(
 		prog='cmtg',
 		description='Generate matching color theme given a template and palette'
@@ -185,7 +207,8 @@ def main():
 	ex_sources = [x for x in contents(resources) if ".clr" in x]
 	ex_templates = [x for x in contents(resources) if x not in ex_sources and "__" not in x]
 	parser.add_argument("template", help=f'stdin, file, or builtins: {ex_templates}')
-	parser.add_argument("palettes", nargs='+', help=f'stdin, file, xres, appres, or builtins: {ex_sources}')
+	parser.add_argument("palettes", nargs='+',
+		help=f'stdin, file, xres, appres, or builtins: {ex_sources}')
 	parser.add_argument("out", help='stdout or file')
 	args = parser.parse_args()
 
@@ -193,18 +216,14 @@ def main():
 	tpl = parse_colors(tpl_t)
 	dist = dist_functions[args.dist]
 
+	# Chain together multiple palettes if available
+	eprint(f'template: {args.template}')
 	for pal in args.palettes:
+		eprint(f'>{pal}')
 		src_t = input_arg(pal)
 		src = parse_colors(src_t)
-		if len(tpl) > len(src):
-			eprint('Not enough colors in palette, some colors will be duplicated!')
-		r = solve_assignment(tpl, src, dist)
-		p_diff(r,src)
-
-		for tc,sc,w in r:
-			tpl_t = re.sub(c_hex(tc),c_hex(sc),tpl_t,flags=re.IGNORECASE)
+		tpl_t = match_template(tpl_t, dist, tpl, src)
 		tpl = src
-	
 	output_arg(args.out, tpl_t)
 
 if __name__ == "__main__":
